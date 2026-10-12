@@ -33,7 +33,8 @@ export default function Home() {
   useEffect(() => {
     let name = localStorage.getItem('user');
     if (!name?.trim()) {
-      name = window.prompt('Введите ваше имя пользователя');
+      try { name = window.prompt('Введите ваше имя пользователя'); }
+      catch { name = ''; }
     }
     if (name?.trim()) {
       localStorage.setItem('user', name.trim());
