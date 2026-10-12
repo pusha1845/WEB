@@ -14,9 +14,9 @@ function sendEmail(email) {
 export function Animal({ data }) {
   if (!data) return <p>Загрузка…</p>;
   return <div className="pet-slide">
-    <img src={data.img} alt={data.header} />
+    <img src={data.img || '/pet-placeholder.svg'} alt={data.header} />
     <div className="caption"><h2>{data.header}</h2><p>{data.content}</p>
-      <a href={`mailto:${data.email}`} onClick={event => { event.preventDefault(); event.stopPropagation(); sendEmail(data.email); }}>Написать владельцу</a>
+      {data.email && <a href={`mailto:${data.email}`} onClick={event => { event.preventDefault(); event.stopPropagation(); sendEmail(data.email); }}>Написать владельцу</a>}
     </div>
   </div>;
 }
@@ -26,8 +26,17 @@ export default function Home() {
   const [user, setUser] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
-    fetch('/animals.json').then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(setAnimals).catch(() => setError('Не удалось загрузить объявления'));
+    const read = url => fetch(url, { cache: 'no-store' }).then(r => {
+      if (!r.ok) throw new Error(); return r.json();
+    });
+    Promise.allSettled([read('/animals.json'), read('/api/profiles')]).then(([announcements, profiles]) => {
+      const saved = profiles.status === 'fulfilled' ? profiles.value.map(profile => ({
+        id: profile.id, header: profile.nickname,
+        content: `${profile.breed} · ${profile.age} лет`, img: profile.photo || '/pet-placeholder.svg'
+      })) : [];
+      setAnimals([...(announcements.status === 'fulfilled' ? announcements.value : []), ...saved]);
+      if (announcements.status === 'rejected' || profiles.status === 'rejected') setError('Не удалось загрузить часть карточек. Обновите страницу.');
+    });
   }, []);
   useEffect(() => {
     let name = localStorage.getItem('user');
@@ -56,7 +65,7 @@ export default function Home() {
     <h2>Поиск потерянных животных</h2>
     {error && <p className="error" role="alert">{error}</p>}
     {animals.length > 0 && <div className="slider"><AwesomeSlider style={{ '--slider-height-percentage': '52%' }}>
-      {animals.map((animal, index) => <div key={`${index}-${animal.header}`} onClick={() => sendEmail(animal.email)}><Animal data={animal} /></div>)}
+      {animals.map((animal, index) => <div key={animal.id || `${index}-${animal.header}`} onClick={() => { if (animal.email) sendEmail(animal.email); }}><Animal data={animal} /></div>)}
     </AwesomeSlider></div>}
   </main>;
 }
