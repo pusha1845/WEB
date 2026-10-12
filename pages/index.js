@@ -1,0 +1,66 @@
+import React, { useEffect, useState } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import AwesomeSlider from 'react-awesome-slider';
+import student from '../student.json';
+
+function sendEmail(email) {
+  const user = localStorage.getItem('user') || '';
+  const body = `Здравствуйте, я нашел вашего питомца.
+-----------
+С уважением, ${user}`;
+  window.location.href = `mailto:${email}?subject=${encodeURIComponent('Потерянный зверь')}&body=${encodeURIComponent(body)}`;
+}
+
+export function Animal({ data }) {
+  if (!data) return <p>Загрузка…</p>;
+  return <div className="pet-slide">
+    <img src={data.img} alt={data.header} />
+    <div className="caption"><h2>{data.header}</h2><p>{data.content}</p>
+      <a href={`mailto:${data.email}`} onClick={event => { event.preventDefault(); event.stopPropagation(); sendEmail(data.email); }}>Написать владельцу</a>
+    </div>
+  </div>;
+}
+
+export default function Home() {
+  const [animals, setAnimals] = useState([]);
+  const [user, setUser] = useState('');
+  const [error, setError] = useState('');
+  useEffect(() => {
+    fetch('/animals.json').then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(setAnimals).catch(() => setError('Не удалось загрузить объявления'));
+  }, []);
+  useEffect(() => {
+    let name = localStorage.getItem('user');
+    if (!name?.trim()) {
+      name = window.prompt('Введите ваше имя пользователя');
+    }
+    if (name?.trim()) {
+      localStorage.setItem('user', name.trim());
+      setUser(name.trim());
+    }
+  }, []);
+  function logout() {
+    localStorage.removeItem('user');
+    window.location.reload();
+  }
+  return <main>
+    <Head><title>Petto — поиск потерянных животных</title></Head>
+    <p className="eyebrow">Next.js · Социальная сеть · Вариант 5</p>
+    <h1>Petto</h1>
+    <p>ФИО: {student.fio}. Группа: {student.group}.</p>
+    <p>Пользователь: {user || 'имя не указано'}</p>
+    {!user && <form onSubmit={event => {
+      event.preventDefault();
+      const name = new FormData(event.currentTarget).get('username').trim();
+      if (name) { localStorage.setItem('user', name); setUser(name); }
+    }}><label htmlFor="username">Имя пользователя</label><input id="username" name="username" required maxLength={80} /><button>Сохранить имя</button></form>}
+    <nav><Link href="/animal-profile">Анкета животного</Link><Link href="/content">Видео с YouTube</Link><button onClick={logout}>Выйти</button></nav>
+    <h2>Поиск потерянных животных</h2>
+    {error && <p className="error" role="alert">{error}</p>}
+    {animals.length > 0 && <div className="slider"><AwesomeSlider style={{ '--slider-height-percentage': '52%' }}>
+      {animals.map((animal, index) => <div key={`${index}-${animal.header}`} onClick={() => sendEmail(animal.email)}><Animal data={animal} /></div>)}
+    </AwesomeSlider></div>}
+    <footer>Petto, учебный проект. Объявления и контакты демонстрационные. Фото: <a href="https://unsplash.com/">Unsplash</a>.</footer>
+  </main>;
+}
