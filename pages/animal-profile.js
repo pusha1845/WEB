@@ -30,7 +30,6 @@ export default function AnimalProfile() {
   }
   return <main>
     <Head><title>Анкета животного — вариант 5</title></Head>
-    <p className="eyebrow">Next.js · Лабораторная работа 3 · Вариант 5</p>
     <h1>Анкета животного</h1>
     <form onSubmit={submit}><fieldset><legend>Данные животного</legend>
       <label htmlFor="nickname">Кличка</label><input id="nickname" value={nickname} maxLength={80} required onChange={e => setNickname(e.target.value)} />

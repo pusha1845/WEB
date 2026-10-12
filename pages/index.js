@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import AwesomeSlider from 'react-awesome-slider';
-import student from '../student.json';
 
 function sendEmail(email) {
   const user = localStorage.getItem('user') || '';
@@ -47,10 +46,7 @@ export default function Home() {
   }
   return <main>
     <Head><title>Petto — поиск потерянных животных</title></Head>
-    <p className="eyebrow">Next.js · Социальная сеть · Вариант 5</p>
     <h1>Petto</h1>
-    <p>ФИО: {student.fio}. Группа: {student.group}.</p>
-    <p>Пользователь: {user || 'имя не указано'}</p>
     {!user && <form onSubmit={event => {
       event.preventDefault();
       const name = new FormData(event.currentTarget).get('username').trim();
@@ -62,6 +58,5 @@ export default function Home() {
     {animals.length > 0 && <div className="slider"><AwesomeSlider style={{ '--slider-height-percentage': '52%' }}>
       {animals.map((animal, index) => <div key={`${index}-${animal.header}`} onClick={() => sendEmail(animal.email)}><Animal data={animal} /></div>)}
     </AwesomeSlider></div>}
-    <footer>Petto, учебный проект. Объявления и контакты демонстрационные. Фото: <a href="https://unsplash.com/">Unsplash</a>.</footer>
   </main>;
 }

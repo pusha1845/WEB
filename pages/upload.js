@@ -25,7 +25,6 @@ export default function Upload() {
   }
   return <main>
     <h1>Загрузка изображения на сервер</h1>
-    <p className="notice">Пример GET и POST запросов из теоретической части методички.</p>
     <form onSubmit={upload}>
       <label htmlFor="animal-type">Тип животного</label>
       <select id="animal-type">{animals.map(name => <option key={name}>{name}</option>)}</select>
